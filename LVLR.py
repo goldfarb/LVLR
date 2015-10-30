@@ -133,7 +133,7 @@ class MainWindow(wx.Frame):
     def __init__(self, parent, id, title):
         """Initialize and display the main GUI window."""
 
-        wx.Frame.__init__(self, parent, id, title, size=(900, 500))
+        wx.Frame.__init__(self, parent, id, title, size=(1000, 500))
 
         # Initialize settings from the configuration file and log file. 
         
@@ -205,7 +205,7 @@ class MainWindow(wx.Frame):
         self.list.InsertColumn(3, 'Meets Specs?', wx.LIST_FORMAT_CENTER, width=100)
         self.list.InsertColumn(4, 'Integrated Loudness', wx.LIST_FORMAT_CENTER, width=130)
         self.list.InsertColumn(5, 'True Peak', wx.LIST_FORMAT_CENTER, width=100)
-        self.list.InsertColumn(6, 'Sample Peak', wx.LIST_FORMAT_CENTER, width=100) #(OMW: Megan would prefer this read "Peak Value")
+        self.list.InsertColumn(6, 'Peak Value', wx.LIST_FORMAT_CENTER, width=100)
         #self.list.InsertColumn(7, 'Loudness Range', wx.LIST_FORMAT_CENTER, width=100)
 
         # Establish file list as a drag-and-drop target.
@@ -1189,7 +1189,12 @@ class MainWindow(wx.Frame):
             print "BITRATE to go back to :: "
             print bitrateParam
             print adjusted_MP
-            output_file = open(output_name, 'w') ##
+            output_file = open(output_name, 'w')
+            if (abs(bitrateParam - 128) < 10):
+                bitrateParam = 128
+            if (abs(bitrateParam - 256) < 10):
+                bitrateParam = 256
+
             br_to_use = str(bitrateParam) + 'k'
             print br_to_use
 #            proc = subprocess.call([ffmpegEXE,'-i', adjusted_file, '-b:a', str(bitrateParam), adjusted_MP])
@@ -1207,7 +1212,7 @@ class MainWindow(wx.Frame):
             sys.stdout.flush()
             output_file.close()
             if os.path.isfile(adjusted_file):
-                os.remove(adjusted_file)
+                os.remove(adjusted_file)#one thing to check
 
         else:          
             output_file = open(output_name, 'w') ##
@@ -1605,10 +1610,10 @@ class SettingsDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnClose, id=self.close.GetId()) 
 
         self.apply = wx.Button(self, -1, 'Apply', pos=(20, 410), size=(100, -1))
-	self.Bind(wx.EVT_BUTTON, self.OnApply, id=self.apply.GetId())
+        self.Bind(wx.EVT_BUTTON, self.OnApply, id=self.apply.GetId())
 
         self.defaults = wx.Button(self, -1, 'Restore Defaults', pos=(220, 440), size=(150, -1))
-	self.Bind(wx.EVT_BUTTON, self.OnRestoreDefaults, id=self.defaults.GetId())
+        self.Bind(wx.EVT_BUTTON, self.OnRestoreDefaults, id=self.defaults.GetId())
 
         self.save = wx.Button(self, -1, 'Save Settings for Future Session', pos=(170,410), size=(250,-1))
         self.Bind(wx.EVT_BUTTON, self.OnSaveSettings, id=self.save.GetId())
