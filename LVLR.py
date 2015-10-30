@@ -41,9 +41,6 @@ import logging
 from wx.lib.delayedresult import startWorker
 
 app = wx.App(False)
-#output
-#work_dir = os.getcwd()
-
 
 work_dir = "/Applications"
 
@@ -53,7 +50,6 @@ sys.stdout = log
 sys.stderr = log
 
 print "work_dir :=\n\t" + work_dir
-
 
 command = work_dir + "/LVLR.app/Contents/MacOS/bin/ffmpeg"
 print command
@@ -72,11 +68,6 @@ for d in sys.path:
     print d
 print "\n"
 sys.stdout.flush()
-
-        ##
-
-
-
 # Default settings:
 
 TARGET_IL_DEFAULT = -24
@@ -106,13 +97,14 @@ BITRATE = 6
 IS_RENDERED = 7
 IS_ANALYZED = 8
 IS_ADJUSTED = 9 
-IS_MP3 = 10
+IS_MP = 10
 MEETS_SPECS_ADJ = 11 
 INT_LOUD_ADJ = 12
 T_PEAK_ADJ = 13
 S_PEAK_ADJ = 14
 LOUDNESS_RANGE_ADJ = 15
 IS_BAD = 16
+IS_MONO = 17
 
 # Miscellaneous Files:
 
@@ -383,19 +375,14 @@ class MainWindow(wx.Frame):
               check = self.list.GetItem(i,0)
               box = check.GetWindow()
               file = self.indexMap[i/3]
-              print "check" + str(check) + "box" + str(box) + "file "+ str(file)
               if box.GetValue() and not self.fileList[file][IS_ANALYZED]:
-                print "toAnalyze"
-                print toAnalyze
                 toAnalyze.append((file,i))
-                print "toAnalyze"
-                print toAnalyze
+
         
 
         # Launch an analysis thread and progress bar for each selected file.
         for (file,index) in toAnalyze:
             item = self.list.GetItem(index,2)
-            print "item" + str(item) + str(index) + "progress bar"
             gauge = item.GetWindow()
             gauge.Pulse()
             ##self._resultAnalyzeProducer(file)  # Inserted for debugging purposes!
@@ -416,13 +403,8 @@ class MainWindow(wx.Frame):
                 
     def AdjustHelper(self):
         """Call an adjust thread for every selected item."""
-        print "AdjustHelper\n"
         # Compile list of selected files (ignoring any that have already been adjusted).
         toAdjust = []
-        print "toAdjust"
-        print toAdjust
-        print "how many?"
-        print self.list.GetItemCount()
 
         for i in range(self.list.GetItemCount()):
            if i%3 == 0:
@@ -434,9 +416,7 @@ class MainWindow(wx.Frame):
 
         # Perform adjustment for each selected item. 
         for (file,index) in toAdjust:
-            print "for file, index"
-            print str(file) + str(index)
-            print "------\n"
+            
 
             # Add progress bars.
             item = self.list.GetItem(index,2)
@@ -462,6 +442,8 @@ class MainWindow(wx.Frame):
             # Launch an adjust thread for each selected file.
             print "file name"
             print file
+            print "TARGET:"
+            print self.targetIL
             self._resultAdjustProducer(file, timestamp, index)
             # startWorker(self._resultAdjustConsumer, self._resultAdjustProducer, cargs=(file,index,timestamp,), wargs=(file,timestamp,))
 
@@ -477,91 +459,64 @@ class MainWindow(wx.Frame):
         print "_resultAnalyzeProducer\n"
         print file
         print self
+        print "target::::"
         print self.targetIL
         
         output_name = work_dir + "/LVLR.app/Contents/output_file_resultAnalyzeProducer.txt" ##
         output_file = open(output_name, 'w') ##
         proc = subprocess.call([ffmpegEXE, '-nostats', '-i', file, '-filter_complex', 'ebur128=peak=true+sample:framelog=verbose', '-f', 'null', '-'], bufsize=1, stdout=output_file, stderr=output_file)
 
-        print "proc = ffmpeg"
         sys.stdout.flush()
-        print "\n"
         
         buffered = open(output_name, 'rU').read() ##made it = rather than +=
-        print "buffered 488"
-        print "buffered type: \n" + str(type(buffered))
         sys.stdout.flush()
         #
 
         self.prologue = buffered.split('Press [q]')[0]    # Capture the beginning of the output information (which includes bitrate).
 
-        print "prologue type:\n"
-        print type(self.prologue)
-        print self.prologue
         
 ##test mono v. stereo
+
         channels = re.search(r'Hz, (.+?),', self.prologue)
         chVal = channels.group(1)
         print chVal
         print type(chVal)
         print "S v. M"
-        print self.targetIL
-####
-
-
-
-###
+        
 
         if ((chVal == "mono") or (chVal == "1 channels")):
             print "mono!"
+            self.fileList[file][IS_MONO] = True
             self.targetIL = -27
+            print self.targetIL
+            print self.fileList[file][FILE_NAME]
+
             
 ## put mono stuff back in here ##
 
         if ((chVal == "stereo") or (chVal == "2 channels")):
             print "stereo!"
+            self.fileList[file][IS_MONO] = False
+            self.targetIL = -24
+            print self.targetIL
+            print self.fileList[file][FILE_NAME]
+
 
         if not ((chVal == "mono") or (chVal == "1 channels") or (chVal == "stereo") or (chVal == "2 channels")):
             print "some other options!"
-            
+            self.fileList[file][IS_MONO] = False
+            self.targetIL = -24
+            print self.targetIL
         print "461"
+        print self.fileList[file][IS_MONO]
        # self.summary = stdout.split('\n')[-16:]         # Capture the end of the output information.
 #       self.summary = buffered.split('\n')[-16:]         # Capture the end of the output information.
         ##changed to deal with longer headers
         split_part = buffered.partition('Summary:\n')
         self.summary = str(split_part[2])
-        ##
-        print "463"
-        print "summary type:\n"
-        print type(self.summary)
-        print "SUMMARY 0 \n\n:::\n"
-        #print self.summary #
-        print "what is the summary?\n\n"
-        print type(self.summary)
-        summary_str = ''.join(self.summary)
-        print type(summary_str)
-        #print summary_str
-        print "\n\n\n"
-
-        #tester = "blerg" + ''.join(self.summary)
-        #print tester
-        #result = ''.join(self.summary)
         result = self.prologue + ''.join(self.summary)    # Return both for processing. 
-        #print "SUMMARY 3 \n\n:::\n"
-        #print self.summary #
-        #print "result \n"
-        #print result
-        print "\n end result"
 
-        print "summary \n"
-        print self.summary
-        print "\n end summary"
-        #print index
-        #index = 0    # Arbitrary number, for debugging purposes... 
-        #I simply chose the first analysis row in the grid.
         item = self.list.GetItem(index,2)
-        print index
-        print item
         gauge = item.GetWindow()
         gauge.SetValue(50)
 
@@ -595,20 +550,6 @@ class MainWindow(wx.Frame):
     def ProcessSummary(self, file, summary, i):
         """Process ffmpeg data and display it in the GUI."""
         errorFlag = False
-        print "ProcessSummary\n"
-        ###print self.summary
-        print "i: " + str(i)
-        
-        print "summary type:\n\n" + str(type(summary))       
-        print "---------"
-
-        ###print summary
-        #summary = ''.join(summary)     # OMW: Check this for redundancy.#using summary_str
-        #print "summary type:\n\n"
-        #print type(summary)        
-        print "---------"
-        print " "
-        
 
         # Extract bitrate. 
         if not self.fileList[file][IS_ANALYZED]:
@@ -657,7 +598,25 @@ class MainWindow(wx.Frame):
             errorFlag = True
         #IL = "30"
         #i = 0 ##testing
-        self.list.SetStringItem(i,4,IL)
+        ##test##
+        #IL = "33"
+        print "look::"
+        print type(IL)
+
+
+##
+
+
+
+        if self.fileList[file][IS_MONO] == True:
+            ILint = float(IL)
+            ILtoShow = str(ILint + 3)
+        else:
+            ILtoShow = IL
+            
+        
+        self.list.SetStringItem(i,4,ILtoShow)
+        print "IL shown " + str(ILtoShow) + " & actual IL " + IL
 
         if i%3 == 0:
             self.fileList[file][INT_LOUD] = IL
@@ -716,9 +675,7 @@ class MainWindow(wx.Frame):
         #self.logfile.write("LRA: " + str(LRA) + "\n\n\n")
         self.logfile.write("********************************************************\n\n")
         ##
-        print "just added the values \n\n\t\t::"
-        print self.fileList[file][INT_LOUD]
-        print str(self.fileList[file][INT_LOUD])
+
         ##
         # Notify users of any data-collection errors; if no errors are detected, flag the file as analyzed.
         if errorFlag:
@@ -765,7 +722,23 @@ class MainWindow(wx.Frame):
         """Invoke the ffmpeg adjust routine and pipe the output to __resultAdjustConsumer."""
  
         ###
+        print self.fileList[file][FILE_NAME]
+        print "target : \n\t"
+        print self.targetIL
+        print "is mp3 or mp2?"
+        print self.fileList[file][IS_MP]
+        print "is mono? \n\t"
+        print self.fileList[file][IS_MONO]
 
+        if self.fileList[file][IS_MONO] == True:
+            self.targetIL = -27
+        else:
+            self.targetIL = -24
+        
+        print "target : \n\t"
+        print self.targetIL
+        
+        
         output_name = work_dir + "/LVLR.app/Contents/output_file_resultAdjustProducer.txt" ##
         #output_file = open(output_name, 'w') ##
 
@@ -788,8 +761,16 @@ class MainWindow(wx.Frame):
  
         # Convert mp3 files to wav before processing.
         # ALICE: This would be where you can add mp2 conversion as well. 
-        if extension == "mp3":
-            self.fileList[file][IS_MP3] = True    # Designate as mp3.
+        
+        print "EXT:: "
+        print extension
+        if ((extension == "mp3") or (extension == "mp2")):
+            print "IS MP"
+            old_ext = extension
+            print "old extensions: " + old_ext
+
+            self.fileList[file][IS_MP] = True    # Designate as mp3.
+            print "yes, MP"
             extension = "wav"
             wav_file = fileNewFold[:dot.start()] + '.' + extension    # Name equivalent wav file.
             if os.path.isfile(wav_file):    # Remove any existing files of that name.
@@ -800,9 +781,10 @@ class MainWindow(wx.Frame):
 #            proc = subprocess.call([ffmpegEXE, '-i', file, wav_file], bufsize = 1, stdout=output_file, stderr=output_file)
             #stdout,stderr = proc.communicate()
             
-            adjusted_MP3 = fileNewFold[:dot.start()] + "_adjusted.mp3"    # Name final adjusted MP3 file.
-            if os.path.isfile(adjusted_MP3):    # Remove any existing files of that name.
-                os.remove(adjusted_MP3)
+            adjusted_MP = fileNewFold[:dot.start()] + "_adjusted." + old_ext    # Name final adjusted MP3 file.
+            print adjusted_MP
+            if os.path.isfile(adjusted_MP):    # Remove any existing files of that name.
+                os.remove(adjusted_MP)
 
         # Define other helper files and remove any duplicates (i.e. permit overwrites). 
         ## overwriting ##
@@ -830,7 +812,7 @@ class MainWindow(wx.Frame):
         # Copy the original file to `start_file' to prevent modification of the original.
         shutil.copy(file, start_file) 
 
-        print "int loud"
+        print "int loud :: :: ::"
         print type(INT_LOUD)
         print INT_LOUD
         print type(self.fileList[file][INT_LOUD])
@@ -1186,14 +1168,10 @@ class MainWindow(wx.Frame):
 
 
         buffered = open(output_name, 'rU').read() ##made it = rather than +=
-        #filePath.close()
-        #print buffered
         print "buffered 1190"
-        ##print buffered
+        
         print "buffered type: \n"
         print type(buffered)
-        #
-        ##summary = buffered.split('\n')[-16:]##
         split_part = buffered.partition('Summary:\n')
         summary = str(split_part[2])
  
@@ -1205,16 +1183,27 @@ class MainWindow(wx.Frame):
 #Do I actually need this anymore????
 
         # If the original file was an mp3, convert the intermediate wav file to an mp3 using the appropriate bitrate.
-        if self.fileList[file][IS_MP3]:
+        if self.fileList[file][IS_MP]:
             bitrateParam = self.GetBitrateParam(self.fileList[file][BITRATE])
+            
+            print "BITRATE to go back to :: "
+            print bitrateParam
+            print adjusted_MP
             output_file = open(output_name, 'w') ##
-            proc = subprocess.call([ffmpegEXE,'-i', adjusted_file, '-codec:a', 'libmp3lame', '-qscale:a', str(bitrateParam), adjusted_MP3])
+            br_to_use = str(bitrateParam) + 'k'
+            print br_to_use
+#            proc = subprocess.call([ffmpegEXE,'-i', adjusted_file, '-b:a', str(bitrateParam), adjusted_MP])
+            proc = subprocess.call([ffmpegEXE,'-i', adjusted_file, '-b:a', br_to_use, adjusted_MP])
+ 
+#            proc = subprocess.call([ffmpegEXE,'-i', adjusted_file, '-codec:a', 'libmp3lame', '-qscale:a', str(bitrateParam), adjusted_MP])
+
             sys.stdout.flush()
             output_file.close()
             #stdout,stderr = proc.communicate()
 
             output_file = open(output_name, 'w') ##
-            proc = subprocess.call([ffmpegEXE, '-nostats', '-i', adjusted_MP3, '-filter_complex', 'ebur128=peak=true+sample:framelog=verbose', '-f', 'null', '-'], bufsize=1, stdout=output_file, stderr=output_file)
+            proc = subprocess.call([ffmpegEXE, '-nostats', '-analyzeduration', '2147483647', '-probesize', '2147483647', '-i', adjusted_MP, '-filter_complex', 'ebur128=peak=true+sample:framelog=verbose', '-f', 'null', '-'], bufsize=1, stdout=output_file, stderr=output_file)
+#            proc = subprocess.call([ffmpegEXE, '-nostats', '-i', adjusted_MP, '-filter_complex', 'ebur128=peak=true+sample:framelog=verbose', '-f', 'null', '-'], bufsize=1, stdout=output_file, stderr=output_file)
             sys.stdout.flush()
             output_file.close()
             if os.path.isfile(adjusted_file):
@@ -1253,7 +1242,7 @@ class MainWindow(wx.Frame):
             os.remove(start_file)
         if os.path.isfile(intermed_file):
             os.remove(intermed_file)
-        if self.fileList[file][IS_MP3]:  #(OMW: Check to make sure this doesn't break anything!!)
+        if self.fileList[file][IS_MP]:  #(OMW: Check to make sure this doesn't break anything!!)
             if os.path.isfile(wav_file):
                 os.remove(wav_file)
 
@@ -1273,6 +1262,15 @@ class MainWindow(wx.Frame):
         """Convert bitrate to the appropriate libmp3lame parameter. (Note that for boundary cases, 
            we have chosen to air on the side of a higher bitrate. https://trac.ffmpeg.org/wiki/Encode/MP3)"""
         
+        print "BitRate :: "
+        print bitrate
+        print type(bitrate)
+        bitrateString = bitrate
+        bitrate = int(bitrateString)
+        print type(bitrate)
+        print bitrate
+        return bitrate
+        """
         if bitrate > 220:
             return 0
         elif bitrate > 190:
@@ -1294,7 +1292,7 @@ class MainWindow(wx.Frame):
         elif bitrate > 45:
             return 9
         else:
-            return 0 
+            return 0 """
 
 
     def OnLoadFile(self, event):
@@ -1340,7 +1338,7 @@ class MainWindow(wx.Frame):
           #     file name, meets specs?, IL, TP, SP, LRA, bitrate, isRendered, isAnalyzed, isAdjusted, isMP3, meets specs 
           #     after adjustment?, IL_adjusted, TP_adjusted, SP_adjusted, LRA_adjusted isBad.
           #     ALICE: We could make this an 18-tuple and also store sample rate.
-          self.fileList[file] = [file,'','','','','','',False,False,False,False,'','','','','',False] 
+          self.fileList[file] = [file,'','','','','','',False,False,False,False,'','','','','',False, False] 
           print "fileList[file]" + str(file) + "\n\t" + str(self.fileList[file])
  
     def Render(self):
