@@ -223,10 +223,10 @@ class MainWindow(wx.Frame):
         self.ana.Disable()
         self.adj = wx.Button(buttonPanel, -1, 'Adjust', size=(100, -1))
         self.adj.Disable()
-        self.rem = wx.Button(buttonPanel, -1, 'Remove', size=(100,-1))
-        self.rem.Disable()
-        self.und = wx.Button(buttonPanel, -1, 'Undo Remove', size=(100, -1))
-        self.und.Disable()
+        #self.rem = wx.Button(buttonPanel, -1, 'Remove', size=(100,-1))
+        #self.rem.Disable()
+        #self.und = wx.Button(buttonPanel, -1, 'Undo Remove', size=(100, -1))
+        #self.und.Disable()
 
         # Add Leveler logo.
         img = wx.Image(LOGO_IMG, wx.BITMAP_TYPE_ANY)
@@ -239,8 +239,8 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.OnLoadFile, id=self.loadfile.GetId())
         print "ID:: " + str(id)
         self.Bind(wx.EVT_BUTTON, self.OnLoadFolder, id=self.loadfolder.GetId())
-        self.Bind(wx.EVT_BUTTON, self.OnRemove, id=self.rem.GetId())
-        self.Bind(wx.EVT_BUTTON, self.OnUndo, id=self.und.GetId())
+        #self.Bind(wx.EVT_BUTTON, self.OnRemove, id=self.rem.GetId())
+        #self.Bind(wx.EVT_BUTTON, self.OnUndo, id=self.und.GetId())
         self.Bind(wx.EVT_BUTTON, self.OnSelectAll, id=self.sel.GetId())
         self.Bind(wx.EVT_BUTTON, self.OnDeselectAll, id=self.des.GetId())
         self.Bind(wx.EVT_BUTTON, self.OnAnalyze, id=self.ana.GetId())
@@ -266,8 +266,8 @@ class MainWindow(wx.Frame):
         vbox2.Add(self.loadfolder, 0, wx.ALL, 10)
         vbox2.Add(self.sel, 0, wx.ALL, 10)
         vbox2.Add(self.des, 0, wx.ALL, 10)
-        vbox2.Add(self.rem, 0, wx.ALL, 10)
-        vbox2.Add(self.und, 0, wx.ALL, 10)    # Disabled until applicable
+        #vbox2.Add(self.rem, 0, wx.ALL, 10)
+        #vbox2.Add(self.und, 0, wx.ALL, 10)    # Disabled until applicable
         vbox2.Add(self.ana, 0, wx.ALL, 10)
         vbox2.Add(self.adj, 0, wx.ALL, 10)
         buttonPanel.SetSizer(vbox2)
@@ -1354,7 +1354,7 @@ class MainWindow(wx.Frame):
        if self.fileList:
           self.sel.Enable()
           self.des.Enable()
-          self.rem.Enable()
+          #self.rem.Enable()
           self.ana.Enable()
           self.adj.Enable()
 
