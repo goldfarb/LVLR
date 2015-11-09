@@ -393,7 +393,7 @@ class MainWindow(wx.Frame):
         # If the call to 'AnalyzeHelper' was initiated by pressing the 'Adjust' button, 
         # proceed to the AdjustHelper function. 
         if toAdjustLater:
-			self.AdjustHelper()
+            self.AdjustHelper()
 
     def OnAdjust(self, event):
         """The event handler for the 'Adjust' button."""
@@ -429,9 +429,39 @@ class MainWindow(wx.Frame):
 
             # Display the names of the to-be-adjusted files.
             (dir,just_file) = os.path.split(os.path.abspath(file))
-            dot = re.search("\.", just_file)
-            extension = just_file[dot.end():]
-            stem = just_file[:dot.end()-1]
+            print type(just_file)
+
+            file_name_as_string = str(just_file)
+
+            print "string version"
+            print type(file_name_as_string)
+            print file_name_as_string
+
+            dot = re.search("(.*\.)*(.*)", file_name_as_string)
+            extension = dot.group(2)
+            
+            print "EXTENSION::: "
+            print extension
+
+            
+            ### this is the old one ###
+            #dot_o = re.search("\.", just_file)
+            #extension_o = just_file[dot_o.end():]
+            #print "older version: "
+            #print extension_o
+
+            #stem = just_file[:dot.end()-1]
+            n = re.search(extension, file_name_as_string)
+            stem = file_name_as_string[:n.start()-1]
+            print "---stem"
+            print stem
+            print type(stem)
+            print str(stem)
+
+
+            #stem = file_name_as_string[:dot.end()-1]
+            
+
             timestamp = time.strftime("%d-%m-%Y;%H%M") + '.'
             if not self.overwrite:
                 adjusted_file = stem + "_adjusted_" + timestamp + extension
@@ -746,9 +776,26 @@ class MainWindow(wx.Frame):
         #output_file_second = open(output_name, 'w') ##
 
         
+        ####
+        file_name_as_string = str(file)
+        print "string version"
+        print type(file_name_as_string)
+        print file_name_as_string
+
+        dot = re.search("(.*\.)*(.*)", file_name_as_string)
+        extension = dot.group(2)
+            
+        print "EXTENSION::: "
+        print extension
+
+
+        #####
+        ##olde##
         # Extract file extension.
-        dot = re.search("\.", file)
-        extension = file[dot.end():]
+        #dot_o = re.search("\.", file)
+        #extension_o = file[dot_o.end():]
+        #print "older: "
+        #print extension_o
 
         # Specify path of adjusted file based on config settings.
         (dir,just_file) = os.path.split(os.path.abspath(file))
@@ -757,13 +804,31 @@ class MainWindow(wx.Frame):
             fileNewFold = dir + SEPARATOR + just_file   #this could be part of the problem... maybe not a valid path?
         else:
             fileNewFold = file
-        dot = re.search("\.", fileNewFold)
+        
+        print "fileNewFold"
+        type(fileNewFold)
+
+
+        fileNewFold_str = str(fileNewFold)
+
+        dot = re.search("(.*\.)*(.*)", fileNewFold_str)
+        #dot = re.search("\.", fileNewFold)
+        print "dot for full fileNewFold"
+        print dot
+        print type(dot)
+        print str(dot)
  
         # Convert mp3 files to wav before processing.
         # ALICE: This would be where you can add mp2 conversion as well. 
         
         print "EXT:: "
         print extension
+        n = re.search(extension, fileNewFold_str)
+
+        stem = fileNewFold_str[:n.start() - 1]
+        print "stem--"
+        print stem
+
         if ((extension == "mp3") or (extension == "mp2")):
             print "IS MP"
             old_ext = extension
@@ -772,7 +837,12 @@ class MainWindow(wx.Frame):
             self.fileList[file][IS_MP] = True    # Designate as mp3.
             print "yes, MP"
             extension = "wav"
-            wav_file = fileNewFold[:dot.start()] + '.' + extension    # Name equivalent wav file.
+
+#            wav_file = fileNewFold[:dot.start()] + '.' + extension    # Name equivalent wav file.#
+            wav_file = stem + '.' + extension    # Name equivalent wav file.#
+
+            #print wave_file
+            
             if os.path.isfile(wav_file):    # Remove any existing files of that name.
                 os.remove(wav_file)
             output_file = open(output_name, 'w') ##proc = subprocess.call([ffmpegEXE, '-i', file, wav_file], bufsize = 1, stdout=output_file, stderr=output_file)
@@ -780,8 +850,9 @@ class MainWindow(wx.Frame):
             output_file.close()
 #            proc = subprocess.call([ffmpegEXE, '-i', file, wav_file], bufsize = 1, stdout=output_file, stderr=output_file)
             #stdout,stderr = proc.communicate()
-            
-            adjusted_MP = fileNewFold[:dot.start()] + "_adjusted." + old_ext    # Name final adjusted MP3 file.
+            adjusted_MP = stem + "_adjusted." + old_ext    # Name final adjusted MP3 file.
+            #adjusted_MP = fileNewFold[:dot.start()] + "_adjusted." + old_ext    # Name final adjusted MP3 file.
+            print "adjusted_MP"
             print adjusted_MP
             if os.path.isfile(adjusted_MP):    # Remove any existing files of that name.
                 os.remove(adjusted_MP)
@@ -790,18 +861,35 @@ class MainWindow(wx.Frame):
         ## overwriting ##
         #
         if self.overwrite:  
+
+            start_file = stem + "_start." + extension
+            intermed_file = stem + "_intermed." + extension
+            adjusted_file = stem + "_adjusted." + extension   
+            print "start, int, adjusted"
+            print start_file
+            print intermed_file
+            print adjusted_file
+            '''
             start_file = fileNewFold[:dot.start()] + "_start." + extension
             intermed_file = fileNewFold[:dot.start()] + "_intermed." + extension
-            adjusted_file = fileNewFold[:dot.start()] + "_adjusted." + extension   
+            adjusted_file = fileNewFold[:dot.start()] + "_adjusted." + extension   '''
         #if self.overwrite:  
         #    start_file = fileNewFold[:dot.start()] + "_start_" + timestamp + extension
         #    intermed_file = fileNewFold[:dot.start()] + "_intermed_" + timestamp + extension
         #    adjusted_file = fileNewFold[:dot.start()] + "_adjusted_" + timestamp + extension 
         else:
+            start_file = stem + "_start_" + timestamp + extension
+            intermed_file = stem + "_intermed_" + timestamp + extension
+            adjusted_file = stem + "_adjusted_" + timestamp + extension 
+            print "start, int, adjusted"
+            print start_file
+            print intermed_file
+            print adjusted_file
+            '''
+        
             start_file = fileNewFold[:dot.start()] + "_start_" + timestamp + extension
             intermed_file = fileNewFold[:dot.start()] + "_intermed_" + timestamp + extension
-            adjusted_file = fileNewFold[:dot.start()] + "_adjusted_" + timestamp + extension 
-        
+            adjusted_file = fileNewFold[:dot.start()] + "_adjusted_" + timestamp + extension '''
         if os.path.isfile(start_file):
             os.remove(start_file) 
         if os.path.isfile(adjusted_file):
