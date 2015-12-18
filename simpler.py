@@ -508,7 +508,7 @@ class MainWindow(wx.Frame):
         sys.stdout.flush()
         #
 
-        self.prologue = buffered.split('Press [q]')[0]    # Capture the beginning of the output information (which includes bitrate).
+        self.prologue = buffered.split('Summary:\n')[0]    # Capture the beginning of the output information (which includes bitrate).
 
         
 ##test mono v. stereo
@@ -548,9 +548,29 @@ class MainWindow(wx.Frame):
        # self.summary = stdout.split('\n')[-16:]         # Capture the end of the output information.
 #       self.summary = buffered.split('\n')[-16:]         # Capture the end of the output information.
         ##changed to deal with longer headers
-        split_part = buffered.partition('Summary:\n')
+        
+
+        #split_part = buffered.partition('Summary:\n')
+
+
+#        first = str(split_part[2])
+ #       split_part = first.partition('Summary:\n')
+  #     
+        split_part = buffered.partition('Press [q]')
         self.summary = str(split_part[2])
+
         result = self.prologue + ''.join(self.summary)    # Return both for processing. 
+
+        print "RESULTS:: "
+        print result
+        print
+        print "!!!"
+
+        print "self summary"
+        print self.summary
+
+        print "prologue -- "
+        print self.prologue
 
         item = self.list.GetItem(index,2)
         gauge = item.GetWindow()
@@ -866,16 +886,15 @@ class MainWindow(wx.Frame):
         # Define other helper files and remove any duplicates (i.e. permit overwrites). 
         ## overwriting ##
         #
-        if self.overwrite:  
-
-            start_file = stem + "_start." + extension
-            intermed_file = stem + "_intermed." + extension
-            adjusted_file = stem + "_adjusted." + extension   
-            print "start, int, adjusted"
-            print start_file
-            print intermed_file
-            print adjusted_file
-            '''
+      #  if self.overwrite:  
+        start_file = stem + "_start." + extension
+        intermed_file = stem + "_intermed." + extension
+        adjusted_file = stem + "_adjusted." + extension   
+        print "start, int, adjusted"
+        print start_file
+        print intermed_file
+        print adjusted_file
+        '''
             start_file = fileNewFold[:dot.start()] + "_start." + extension
             intermed_file = fileNewFold[:dot.start()] + "_intermed." + extension
             adjusted_file = fileNewFold[:dot.start()] + "_adjusted." + extension   '''
@@ -883,7 +902,7 @@ class MainWindow(wx.Frame):
         #    start_file = fileNewFold[:dot.start()] + "_start_" + timestamp + extension
         #    intermed_file = fileNewFold[:dot.start()] + "_intermed_" + timestamp + extension
         #    adjusted_file = fileNewFold[:dot.start()] + "_adjusted_" + timestamp + extension 
-        else:
+        '''        else:
             start_file = stem + "_start_" + timestamp + extension
             intermed_file = stem + "_intermed_" + timestamp + extension
             adjusted_file = stem + "_adjusted_" + timestamp + extension 
@@ -891,7 +910,7 @@ class MainWindow(wx.Frame):
             print start_file
             print intermed_file
             print adjusted_file
-            '''
+        '''         '''
         
             start_file = fileNewFold[:dot.start()] + "_start_" + timestamp + extension
             intermed_file = fileNewFold[:dot.start()] + "_intermed_" + timestamp + extension
@@ -1001,7 +1020,7 @@ class MainWindow(wx.Frame):
 ##
 
                         print "------902"
-                        split_part = buffered.partition('Summary:\n')
+                        split_part = buffered.partition('Press [q]')
                         self.summary = str(split_part[2])
                         print type(self.summary)
                         print type(buffered)
@@ -1082,7 +1101,7 @@ class MainWindow(wx.Frame):
 
                         ##other version of splitting
                         #summary = buffered.split('\n')[-16:]
-                        split_part = buffered.partition('Summary:\n')
+                        split_part = buffered.partition('Press [q]')
                         summary = str(split_part[2])
  
                         print "summary 989"
@@ -1125,7 +1144,7 @@ class MainWindow(wx.Frame):
 
                 #summary = buffered.split('\n')[-16:]
 
-                split_part = buffered.partition('Summary:\n')
+                split_part = buffered.partition('Press [q]')
                 summary = str(split_part[2])
                 print "1057"
                 print summary
@@ -1221,7 +1240,7 @@ class MainWindow(wx.Frame):
                 
                 #
                 ##other version ## summary = buffered.split('\n')[-16:]
-                split_part = buffered.partition('Summary:\n')
+                split_part = buffered.partition('Press [q]')
                 summary = str(split_part[2])
  
 
@@ -1266,7 +1285,7 @@ class MainWindow(wx.Frame):
         
         print "buffered type: \n"
         print type(buffered)
-        split_part = buffered.partition('Summary:\n')
+        split_part = buffered.partition('Press [q]')
         summary = str(split_part[2])
  
     
@@ -1333,7 +1352,7 @@ class MainWindow(wx.Frame):
         #
 
         #self.summary = buffered.split('\n')[-16:]
-        split_part = buffered.partition('Summary:\n')
+        split_part = buffered.partition('Press [q]')
         self.summary = str(split_part[2])
  
         # Clean up any loose files. 
